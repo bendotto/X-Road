@@ -5225,6 +5225,7 @@ components:
         - rsa_public_key_exponent
         - hash
         - key_usages
+        - subject_alternative_names
       properties:
         issuer_distinguished_name:
           type: string
