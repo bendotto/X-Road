@@ -30,6 +30,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import java.security.cert.CertificateParsingException;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -136,6 +137,32 @@ public final class CertUtils {
         return cn;
     }
 
+    /**
+     * Reads subject alternative names from certificate and returns its string representation
+     * @param cert certificate for which to get the subject alternative names
+     * @return string representation of the subject alternative names
+     */
+    public static String getSubjectAlternativeNames(X509Certificate cert) {
+        String result = "";
+        Collection<List<?>> subjectAlternativeNames = null;
+        try {
+            subjectAlternativeNames = cert.getSubjectAlternativeNames();
+        } catch (CertificateParsingException e) {
+            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+                    "Failed parsing the certificate information");
+        }
+        if (subjectAlternativeNames != null) {
+            for (final List<?> sanItem : subjectAlternativeNames) {
+                final Integer itemType = (Integer) sanItem.get(0);
+                switch (itemType) {
+                    case 2:
+                        result = String.format("DNS:%s", (String) sanItem.get(1));
+                        break;
+                }
+            }
+        }
+        return result;
+    }
 
     /**
      * @param cert certificate from which to get the subject serial number

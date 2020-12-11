@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.common.util;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.security.cert.CertificateFactory;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.Before;
 import org.junit.Test;
@@ -117,5 +120,15 @@ public class CertUtilsTest {
         CertUtils.createPkcs12("src/test/resources/internal.key", "src/test/resources/internal.crt", pkcsPath);
         Path path = Paths.get(pkcsPath);
         assertTrue(Files.exists(path));
+    }
+
+    @Test
+    public void testGetSubjectAlternativeNames() throws CertificateException, IOException {
+        final String certPath = "src/test/resources/cert_simple.pem";
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        try (FileInputStream in = new FileInputStream(certPath)) {
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
+            assertEquals("DNS:*.dev.acme.org", CertUtils.getSubjectAlternativeNames(cert));
+        }
     }
 }
